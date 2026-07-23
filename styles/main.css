@@ -1,49 +1,195 @@
-body {
-    display: grid;
-    grid-template-columns: 60vw auto;
-}
-#structview {
-    height: 70vh;
-    width: 100%;
-    grid-row-start: 1;
-    grid-row-end: 3;
-}
-#viewport {
-	height: 100%;
-	width: 100%;
-}
-#beadlist {
-	padding: 0.5em;
-	height: 70vh;
-	overflow: hidden;
-	grid-row-start: 2;
-	grid-row-end: 3;
-    grid-column-start: 2;
-	grid-column-end: 3;
-}
-#bead-list {
-	overflow-y:  scroll;
-	height: 100%;
-}
-.bead-view {
-	margin: 0.5em;
-	padding: 0.5em;
-	border: 1px solid;
-}
-.selected-bead {
-    background-color: #41d6f4;
-}
-#file-outputs {
-	grid-column-start: 1;
-	grid-column-end: 3;
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    height: 100%;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
 }
 
-#file-outputs pre {
-	border: 1px solid;
-	/*margin: 1em;*/
-	padding: 1em;
+#app {
+    display: grid;
+    grid-template-columns: minmax(300px, 26vw) 1fr minmax(340px, 26vw);
+    height: 100vh;
+}
+
+/* ---- left: live ITP ---- */
+#itp-panel {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #ccc;
+    min-height: 0;
+}
+#itp-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.5em;
+    border-bottom: 1px solid #eee;
+}
+#itp-meta label { display: flex; align-items: center; gap: 0.3em; }
+#itp-meta input[type=text] { width: 6em; }
+#itp-meta input[type=number] { width: 4em; }
+#itp-output {
+    flex: 1;
+    margin: 0;
+    padding: 0.75em;
+    overflow: auto;
+    white-space: pre;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: #1e1e1e;
+    color: #e8e8e8;
+}
+
+/* ---- center: controls + viewport ---- */
+#center {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
 }
 #controls {
-	grid-row-start: 1;
-	grid-row-end: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.5em;
+    border-bottom: 1px solid #eee;
+}
+#controls form { display: flex; align-items: center; gap: 0.3em; margin: 0; }
+#smiles-input { width: 14em; }
+#smiles-status { color: #b00; font-size: 0.9em; }
+#viewport { flex: 1; min-height: 0; }
+
+/* ---- right: builder tabs ---- */
+#builder {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid #ccc;
+    min-height: 0;
+}
+#tab-bar {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ccc;
+}
+.tab-btn {
+    flex: 1;
+    padding: 0.5em 0.3em;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: #f4f4f4;
+    cursor: pointer;
+    font-size: 12px;
+}
+.tab-btn.active {
+    background: #fff;
+    border-bottom-color: #2b8cbe;
+    font-weight: 600;
+}
+.tab-panel {
+    display: none;
+    flex: 1;
+    overflow: auto;
+    padding: 0.5em;
+    min-height: 0;
+}
+.tab-panel.active { display: block; }
+
+.hint { color: #666; font-size: 0.85em; margin: 0.3em 0; }
+
+/* buttons */
+.btn, button {
+    cursor: pointer;
+}
+label.btn {
+    display: inline-block;
+    padding: 0.3em 0.6em;
+    background: #2b8cbe;
+    color: #fff;
+    border-radius: 3px;
+}
+.dl { margin: 0.3em 0; }
+.dl-row { display: flex; flex-wrap: wrap; gap: 0.4em; margin-bottom: 0.5em; }
+.remove {
+    color: #b00;
+    border: 1px solid #ccc;
+    background: #fff;
+    border-radius: 3px;
+}
+
+/* bead list */
+#bead-list, .term-list { list-style: none; margin: 0; padding: 0; }
+.bead-view {
+    margin: 0.4em 0;
+    padding: 0.4em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.selected-bead { background: #d9f0fa; border-color: #2b8cbe; }
+.bead-header { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3em; }
+.bead-name { width: 4em; font-weight: 600; }
+.bead-type { width: 3em; }
+.bead-charge { width: 3.5em; }
+.bead-mass { color: #666; font-size: 0.85em; margin-left: auto; white-space: nowrap; }
+.atom-list {
+    list-style: none;
+    margin: 0.3em 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3em;
+}
+.atom-list li {
+    padding: 0.05em 0.4em;
+    background: #eee;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+
+/* term builders (bonds/angles/dihedrals/vsites) */
+.term-builder {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3em;
+    padding: 0.4em 0;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0.4em;
+}
+.field { display: inline-flex; align-items: center; gap: 0.2em; }
+.field .num, input.num { width: 4.5em; }
+.bead-select { max-width: 6em; }
+.term-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.3em 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.term-label { font-weight: 600; min-width: 5em; }
+
+#elastic-controls { display: flex; flex-direction: column; gap: 0.5em; align-items: flex-start; }
+
+.pick-box {
+    padding: 0.4em;
+    margin-bottom: 0.5em;
+    border: 1px solid #e0b4b4;
+    border-radius: 4px;
+    background: #fdf3f3;
+}
+.pick-box button { margin-right: 0.3em; }
+.vs-status { margin: 0.2em 0 0.5em; font-size: 0.9em; }
+details > summary { cursor: pointer; color: #555; font-size: 0.9em; margin: 0.3em 0; }
+
+#file-outputs pre, .tab-panel[data-tab=outputs] pre {
+    border: 1px solid #ddd;
+    padding: 0.5em;
+    overflow: auto;
+    font-size: 12px;
+    max-height: 12em;
 }

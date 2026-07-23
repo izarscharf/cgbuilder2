@@ -1,0 +1,80 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\setlist{nosep,leftmargin=1.35em}
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+\renewcommand{\arraystretch}{1.15}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\begin{document}
+
+\begin{center}
+    {\large\bfseries CGBuilder2: Summary of Features Added Relative to CGBuilder}
+\end{center}
+
+\vspace{-0.4em}
+
+CGBuilder2 is an extended, modernised rewrite of the browser-based \textit{CGBuilder}
+tool for constructing Martini coarse-grained (CG) molecular models. The original
+CGBuilder lets a user load an atomistic structure, group atoms into CG beads by
+clicking in a 3D viewer, and export index (\texttt{.ndx}), mapping (\texttt{.map}),
+and coordinate (\texttt{.gro}) files. CGBuilder2 keeps this mapping workflow but
+turns the tool into a complete CG \emph{topology} designer: it assembles a full
+GROMACS/Martini \texttt{.itp} topology live as the model is built, and adds bonded
+interactions, virtual sites, an elastic network, automatic mass handling, and
+SMILES-based molecule input. It was produced as a \textbf{human-guided agentic
+build}---the implementation was carried out iteratively by an AI coding agent under
+close human direction---as one of several small tools developed for this thesis.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}l Y Y@{}}
+\toprule
+\textbf{Aspect} & \textbf{Original CGBuilder} & \textbf{CGBuilder2 (this work)} \\
+\midrule
+Molecule input      & File upload (PDB/GRO/CIF) & File upload \emph{plus} SMILES $\rightarrow$ 3D conformer generated in-browser \\
+Bead mapping        & Click atoms into beads & Same, plus per-bead Martini type, charge, and a settable residue name \\
+Topology output     & None & Live Martini \texttt{.itp} (updates continuously on the left of the display) \\
+Bonds               & None & Manual bonds, built by clicking beads in 3D or by dropdown \\
+Constraints         & None & Rigid constraints emitted as \texttt{\#ifndef FLEXIBLE} with a matching flexible bond under \texttt{\#ifdef FLEXIBLE} \\
+Angles / dihedrals  & None & Interactive (click) and dropdown builders with editable force constants \\
+Virtual sites       & None & \texttt{virtual\_sites3}: pick a 3-bead constructor triad, then click beads to virtualise \\
+Elastic network     & None & Generator over bead pairs within a cutoff, with tunable strength and distance decay \\
+Exclusions          & None & Generated automatically, de-duplicated and correctly formatted \\
+Bead mass           & None & Automatic: sum of atom masses, mass of unmapped atoms spread along the bond graph, virtual-site mass redistributed to constructors (mass conserved) \\
+Visualisation       & CG spheres, atom labels & Adds a CG-only view (bead name/number labels; virtual-site constructors in red) and click-to-select beads \\
+File I/O            & Export \texttt{.ndx}, \texttt{.map}, \texttt{.gro} & Adds \texttt{.itp}, an all-atom \texttt{.gro} reference, and re-import of a CGBuilder \texttt{.ndx} mapping \\
+Software base       & Single JavaScript file, CDN scripts & Modular ES modules bundled with Vite/npm \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\vspace{-0.6em}
+
+\textbf{Highlights.} The most significant additions are (i) end-to-end generation of
+a simulation-ready Martini topology rather than only a mapping; (ii) mass-conserving
+automatic bead masses, including redistribution of virtual-site mass onto its
+constructors; (iii) two complementary ways to define every bonded term---direct
+3D click-selection and dropdown menus---and (iv) in-browser SMILES input, removing
+the need to pre-build an atomistic structure file.
+
+\textbf{Implementation.} The tool runs entirely client-side. Molecular
+visualisation and atom/bead picking use NGL; SMILES parsing and 3D conformer
+generation use OpenChemLib; the application is written as small ES modules and
+bundled with Vite. No server or network access is required at run time.
+
+\textbf{Provenance.} CGBuilder2 was developed as a human-guided agentic build: the
+author specified requirements, reviewed and steered the design decisions, and
+validated the output, while an AI coding agent performed the implementation across
+successive iterations. It is included here as a representative example of the
+agentically-assisted tooling produced during this thesis.
+
+\end{document}

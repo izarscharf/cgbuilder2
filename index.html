@@ -2,36 +2,149 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CG Builder</title>
-    <script src="https://cdn.rawgit.com/arose/ngl/v2.0.0-dev.39/dist/ngl.js"></script>
-    <script src="scripts/main.js"></script>
-    <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="/styles/main.css" />
 </head>
 
 <body>
-<div id="structview">
-	<div id="viewport"></div>
-</div>
-<div id="controls">
-    <form>
-        <label for="files" class="btn">Load molecule</label>
-        <input id="mol-select" type="file" name="files" accept=".pdb,.cif,.ent,.gz,.gro"/>
-    </form>
-    <button class="new-bead" disabled>New bead</button>
-    <button class="toggle-aa-labels" disabled>Hide labels</button>
-    <button id="toggle-cg" disabled>Toggle CG view</button>
-</div>
-<div id="beadlist">
-    <ul id="bead-list"></ul>
-</div>
-<div id="file-outputs">
-    <button id='dl-ndx' class='dl'>Get the NDX file</button>
-    <pre id="ndx-output">NDX output</pre>
-    <button id='dl-map' class='dl'>Get the MAP file</button>
-    <pre id="map-output">MAP output</pre>
-    <button id='dl-gro' class='dl'>Get the GRO file</button>
-    <pre id="gro-output">GRO output</pre>
-</div>
-</body>
+<div id="app">
+    <!-- LEFT: live ITP preview -->
+    <aside id="itp-panel">
+        <div id="itp-meta">
+            <label>Molecule
+                <input id="mol-name" type="text" value="MOL" />
+            </label>
+            <label>Residue
+                <input id="mol-resname" type="text" value="MOL"
+                       title="Residue name for [atoms] and GRO; leave blank to keep per-atom residue names" />
+            </label>
+            <label>nrexcl
+                <input id="mol-nrexcl" type="number" min="0" step="1" value="1" />
+            </label>
+            <button id="dl-itp" class="dl">Download .itp</button>
+        </div>
+        <pre id="itp-output">Load a molecule to begin.</pre>
+    </aside>
 
-</html> 
+    <!-- CENTER: controls + 3D viewport -->
+    <main id="center">
+        <div id="controls">
+            <form id="file-form">
+                <label for="mol-select" class="btn">Load molecule</label>
+                <input id="mol-select" type="file" name="files"
+                       accept=".pdb,.cif,.ent,.gz,.gro,.sdf,.mol,.mol2"/>
+            </form>
+            <form id="ndx-form">
+                <label for="ndx-select" class="btn">Load NDX mapping</label>
+                <input id="ndx-select" type="file" accept=".ndx" disabled/>
+            </form>
+            <form id="smiles-form">
+                <input id="smiles-input" type="text" placeholder="SMILES, e.g. c1ccccc1" />
+                <button id="smiles-go" type="submit">Generate from SMILES</button>
+                <span id="smiles-status"></span>
+            </form>
+            <div id="view-buttons">
+                <button class="new-bead" disabled>New bead</button>
+                <button class="toggle-aa-labels" disabled>Hide labels</button>
+                <button id="toggle-cg" disabled>Toggle CG view</button>
+                <button id="cg-only" disabled>CG only view</button>
+            </div>
+        </div>
+        <div id="viewport"></div>
+    </main>
+
+    <!-- RIGHT: builder tabs -->
+    <section id="builder">
+        <nav id="tab-bar">
+            <button class="tab-btn active" data-tab="beads">Beads</button>
+            <button class="tab-btn" data-tab="bonds">Bonds</button>
+            <button class="tab-btn" data-tab="constraints">Constraints</button>
+            <button class="tab-btn" data-tab="angles">Angles</button>
+            <button class="tab-btn" data-tab="dihedrals">Dihedrals</button>
+            <button class="tab-btn" data-tab="vsites">Virtual sites</button>
+            <button class="tab-btn" data-tab="elastic">Elastic net</button>
+            <button class="tab-btn" data-tab="outputs">Files</button>
+        </nav>
+
+        <div class="tab-panel active" data-tab="beads">
+            <p class="hint">Click atoms in the 3D view to add them to the selected bead.</p>
+            <ul id="bead-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="bonds">
+            <div id="bond-interactive" class="pick-box"></div>
+            <details>
+                <summary>Or add manually by dropdown</summary>
+                <div id="bond-builder" class="term-builder"></div>
+            </details>
+            <ul id="bond-list" class="term-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="constraints">
+            <p class="hint">Rigid constraints. Written under #ifndef FLEXIBLE, plus a matching flexible bond under #ifdef FLEXIBLE in [bonds].</p>
+            <div id="constraint-interactive" class="pick-box"></div>
+            <details>
+                <summary>Or add manually by dropdown</summary>
+                <div id="constraint-builder" class="term-builder"></div>
+            </details>
+            <ul id="constraint-list" class="term-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="angles">
+            <div id="angle-interactive" class="pick-box"></div>
+            <details>
+                <summary>Or add manually by dropdown</summary>
+                <div id="angle-builder" class="term-builder"></div>
+            </details>
+            <ul id="angle-list" class="term-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="dihedrals">
+            <div id="dihedral-interactive" class="pick-box"></div>
+            <details>
+                <summary>Or add manually by dropdown</summary>
+                <div id="dihedral-builder" class="term-builder"></div>
+            </details>
+            <ul id="dihedral-list" class="term-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="vsites">
+            <div id="vsite-interactive" class="pick-box"></div>
+            <details>
+                <summary>Or add manually by dropdown</summary>
+                <p class="hint">Pick 3 constructor beads and the target bead to virtualize.</p>
+                <div id="vsite-builder" class="term-builder"></div>
+            </details>
+            <ul id="vsite-list" class="term-list"></ul>
+        </div>
+
+        <div class="tab-panel" data-tab="elastic">
+            <div id="elastic-controls"></div>
+        </div>
+
+        <div class="tab-panel" data-tab="outputs">
+            <p class="hint">CG model files</p>
+            <div class="dl-row">
+                <button id='dl-itp-file' class='dl'>Download .itp</button>
+                <button id='dl-ndx' class='dl'>Download CG .ndx</button>
+                <button id='dl-map' class='dl'>Download .map</button>
+                <button id='dl-gro' class='dl'>Download CG .gro</button>
+            </div>
+            <p class="hint">All-atom reference</p>
+            <div class="dl-row">
+                <button id='dl-aa-gro' class='dl'>Download AA .gro</button>
+            </div>
+            <details>
+                <summary>Preview NDX / MAP / CG GRO</summary>
+                <pre id="ndx-output">NDX output</pre>
+                <pre id="map-output">MAP output</pre>
+                <pre id="gro-output">GRO output</pre>
+            </details>
+        </div>
+    </section>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
