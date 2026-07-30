@@ -259,6 +259,71 @@ data/benzene_atb.pdb  # sample molecule
 - Virtual-site mass is split **equally** among constructors (a simple, conserving
   default).
 
+## Citation
+
+If CGBuilder2 is useful in your work, please cite it. As the tool has not been
+published in a paper, cite the software directly:
+
+> Schärf, I. (2026). *CGBuilder2: A browser-based tool for building Martini
+> coarse-grained models* (Version 2.0.0) [Software]. Institute for Molecular
+> Systems Engineering and Advanced Materials, Universität Heidelberg.
+> https://github.com/izarscharf/cgbuilder2
+
+BibTeX:
+
+```bibtex
+@software{scharf_cgbuilder2_2026,
+  author       = {Sch{\"a}rf, Izar},
+  title        = {{CGBuilder2}: A browser-based tool for building
+                  {Martini} coarse-grained models},
+  year         = {2026},
+  version      = {2.0.0},
+  url          = {https://github.com/izarscharf/cgbuilder2},
+  organization = {Institute for Molecular Systems Engineering and
+                  Advanced Materials, Universit{\"a}t Heidelberg}
+}
+```
+
+A machine-readable [`CITATION.cff`](CITATION.cff) is included, so GitHub shows a
+**"Cite this repository"** button and tools like Zenodo can read the metadata
+directly.
+
+### Other standard ways to cite unpublished software
+
+- **Archive a release to get a DOI (recommended).** Connect the GitHub repo to
+  **[Zenodo](https://zenodo.org)** (or [Figshare](https://figshare.com)) and make
+  a release; it mints a permanent, versioned **DOI** you can cite like any paper.
+  This is the de-facto standard for citing research software and is the most
+  robust option for a thesis.
+- **`CITATION.cff` in the repo** — the GitHub-native format (already added here);
+  it renders a "Cite this repository" button and exports BibTeX/APA on demand.
+- **Cite the URL + version + access date** — the lightweight fallback when there
+  is no DOI: *author, year, title, version, URL, accessed YYYY-MM-DD*.
+- **[Software Heritage](https://www.softwareheritage.org)** — provides permanent
+  `swh:` identifiers that pin an exact snapshot of the source, complementing a DOI.
+
+## Attribution
+
+CGBuilder2 is a modernized, extended rewrite of
+**[CGBuilder](https://github.com/jbarnoud/cgbuilder)** by **Jonathan Barnoud** and
+the CGBuilder contributors, and began as a fork of that project. The original tool
+provided the atom→bead mapping workflow and the `.ndx` / `.map` / `.gro` exports;
+CGBuilder2 builds on it. The original work is used under the **Apache License 2.0**
+(retained in [LICENSE](LICENSE)); see [NOTICE](NOTICE) for the required attribution
+and a statement of changes.
+
 ## License
 
-See [LICENSE](LICENSE).
+CGBuilder2 is released under the **Apache License 2.0** — see [LICENSE](LICENSE)
+and [NOTICE](NOTICE).
+
+---
+
+## AI development disclaimer
+
+CGBuilder2 was produced as a **human-guided agentic build**. The author
+(Izar Schärf) defined the requirements, steered the design and architectural
+decisions, and reviewed, tested, and validated the results, while an AI coding
+assistant carried out the implementation across successive iterations. Every
+feature was human-directed and human-verified; the AI acted as an implementation
+tool under close supervision, not as an autonomous author.

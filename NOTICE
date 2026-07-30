@@ -1,0 +1,20 @@
+CGBuilder2
+Copyright 2026 Izar Schärf
+Institute for Molecular Systems Engineering and Advanced Materials,
+Universität Heidelberg
+
+This product is a modified derivative work based on CGBuilder
+(https://github.com/jbarnoud/cgbuilder), Copyright Jonathan Barnoud and the
+CGBuilder contributors, used under the Apache License, Version 2.0.
+
+Changes relative to the original CGBuilder include: a modular ES-module rewrite
+bundled with Vite; live GROMACS/Martini .itp topology generation; builders for
+bonds, constraints, angles, dihedrals, virtual sites and an elastic network;
+automatic, mass-conserving bead masses; in-browser SMILES-to-3D input; 3D
+connectivity visualization; editable/round-tripping topology and mapping files;
+and full project save/load.
+
+Licensed under the Apache License, Version 2.0. You may obtain a copy of the
+License in the accompanying LICENSE file or at:
+
+    http://www.apache.org/licenses/LICENSE-2.0

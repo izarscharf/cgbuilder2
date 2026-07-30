@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: "If you use CGBuilder2, please cite it as below."
+title: "CGBuilder2: A browser-based tool for building Martini coarse-grained models"
+abstract: >-
+  A browser-based GUI for constructing Martini coarse-grained molecular models:
+  map atoms into beads, define bonds, constraints, angles, dihedrals, virtual
+  sites and an elastic network, and generate a live GROMACS/Martini .itp topology.
+type: software
+authors:
+  - family-names: "Schärf"
+    given-names: "Izar"
+    affiliation: "Institute for Molecular Systems Engineering and Advanced Materials, Universität Heidelberg"
+version: "2.0.0"
+date-released: "2026-07-31"
+license: Apache-2.0
+url: "https://github.com/izarscharf/cgbuilder2"
+repository-code: "https://github.com/izarscharf/cgbuilder2"
+keywords:
+  - coarse-grained
+  - Martini
+  - molecular-dynamics
+  - GROMACS
+  - topology
+references:
+  - type: software
+    title: "CGBuilder"
+    authors:
+      - family-names: "Barnoud"
+        given-names: "Jonathan"
+    url: "https://github.com/jbarnoud/cgbuilder"
+    notes: "Original tool that CGBuilder2 extends; used under the Apache License 2.0."
