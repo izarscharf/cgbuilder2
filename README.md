@@ -115,6 +115,29 @@ dropdown, then edit force constants and reference values inline.
   <sub>The <b>Files</b> tab exports the CG <code>.itp</code>, <code>.ndx</code>, <code>.map</code>, CG <code>.gro</code>, and AA <code>.gro</code>, loads a <code>.map</code> or <code>.itp</code> back onto a structure, and saves/restores a full <code>.cgb2proj</code> project. Here bonds and an angle are drawn between bead centres in the CG view.</sub>
 </p>
 
+### One file to save, share, and resume — `.cgb2proj`
+
+Building a CG model is rarely done in one sitting, and it's often a team effort.
+The **project file** makes that painless: **Save `.cgb2proj`** bundles *everything*
+about the session into a single self-contained file —
+
+- the loaded **all-atom structure**,
+- the full **bead mapping** (`.ndx`),
+- the atom→bead **`.map`**, and
+- the complete **topology** (`.itp`): bonds, constraints, angles, dihedrals,
+  virtual sites, elastic-network settings, plus the molecule/residue names and nrexcl.
+
+**Load `.cgb2proj`** restores that exact state — the same molecule, beads, terms,
+and live `.itp` — so you can pick up precisely where you left off.
+
+- **Stop and restart anytime.** Save at the end of a session, reopen later, keep going. No re-loading a structure or re-mapping atoms.
+- **Share with one file.** Send a colleague a single `.cgb2proj` and they open your model as-is — no separate structure, ndx, map, and itp to keep in sync.
+- **Nothing to lose track of.** One savefile *is* the project; there's no bundle of loose files whose versions can drift apart.
+
+> Prefer the individual files? They're still there — the same tab exports and
+> reloads `.ndx`, `.map`, and `.itp` on their own. The project file is just the
+> everything-in-one option.
+
 ---
 
 ## Getting started
