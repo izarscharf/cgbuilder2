@@ -53,7 +53,8 @@ Virtual sites       & None & \texttt{virtual\_sites3}: pick a 3-bead constructor
 Elastic network     & None & Generator over bead pairs within a cutoff, with tunable strength and distance decay \\
 Exclusions          & None & Generated automatically, de-duplicated and correctly formatted \\
 Bead mass           & None & Automatic: sum of atom masses, mass of unmapped atoms spread along the bond graph, virtual-site mass redistributed to constructors (mass conserved) \\
-3D visualisation    & CG spheres, atom labels & CG-only labelled view (bead name/number; VS constructors in red) plus a connectivity overlay---cylinders for bonds/constraints/EN and arcs annotated with $\theta$/$\varphi$ for angles/dihedrals---with an independent show toggle per type \\
+3D visualisation    & CG spheres, atom labels & CG-only labelled view (bead name/number; VS constructors in red) plus a connectivity overlay---cylinders for bonds/constraints/EN, arcs annotated with $\theta$/$\varphi$ for angles/dihedrals, and virtual-site lines (constructor\,$\rightarrow$\,site) with their rigid constructor-frame edges---each with an independent show toggle \\
+Mapping annotations & None & Bonded terms are tagged with \texttt{; NAME1\_NAME2} bead-name comments so the \texttt{fast\_forward} tool can flag mappable interactions automatically \\
 Editing / re-import & None & Load and edit existing \texttt{.itp} and \texttt{.map} files; round-trip between the clickable model and the topology text \\
 File I/O            & Export \texttt{.ndx}, \texttt{.map}, \texttt{.gro} & Export \texttt{.itp}, \texttt{.ndx}, \texttt{.map}, CG \texttt{.gro}, all-atom \texttt{.gro}; import \texttt{.ndx}/\texttt{.map}/\texttt{.itp}; save/load a full session as a \texttt{.cgb2proj} project \\
 Software base       & Single JavaScript file, CDN scripts & Modular ES modules bundled with Vite/npm \\
@@ -68,9 +69,11 @@ a simulation-ready Martini topology rather than only a mapping; (ii) a two-way l
 between the clickable model and an editable \texttt{.itp}, which also enables loading
 and editing pre-existing topology/mapping files; (iii) mass-conserving automatic bead
 masses, including redistribution of virtual-site mass onto its constructors;
-(iv) 3D visualisation of the bonded topology with per-type toggles; and (v) full
-project save/load, alongside in-browser SMILES input that removes the need to
-pre-build an atomistic structure file.
+(iv) 3D visualisation of the bonded topology---including virtual-site frames---with
+per-type toggles; and (v) full project save/load, alongside in-browser SMILES input
+that removes the need to pre-build an atomistic structure file. Bonded terms are also
+annotated with \texttt{fast\_forward}-style comments so mappable interactions are
+flagged automatically for downstream tools.
 
 \textbf{Implementation.} The tool runs entirely client-side, with no server or
 network access at run time: molecular visualisation and picking use NGL, SMILES-to-3D
