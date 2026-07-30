@@ -154,31 +154,6 @@ npm run preview  # serve the built bundle locally
 Open the printed URL in a browser. The app is fully client-side — no server or
 internet connection is required after `npm install`.
 
----
-
-## Deploy to GitHub Pages
-
-CGBuilder2 is a fully static site, so it can be hosted for free on GitHub Pages.
-A workflow at [.github/workflows/deploy.yml](.github/workflows/deploy.yml) builds
-the app and publishes it automatically.
-
-**One-time setup:** on GitHub, go to **Settings → Pages → Build and deployment**
-and set **Source** to **GitHub Actions**.
-
-After that, every push to `master` runs `npm run build` on a GitHub runner and
-deploys the `dist/` output. The site appears at:
-
-```
-https://izarscharf.github.io/cgbuilder2/
-```
-
-The relative asset base (`base: './'` in `vite.config.js`) means it works under
-that repository subpath with no extra configuration. The published site is public
-even if the repository is private. You can also trigger a deploy manually from the
-repository's **Actions** tab (**Run workflow**).
-
----
-
 ## Usage
 
 1. **Load a molecule.** Click **Load molecule** and pick a file, or type a SMILES
