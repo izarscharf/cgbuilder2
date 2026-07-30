@@ -8,6 +8,12 @@ angles, dihedrals, virtual sites, elastic network), and watch a GROMACS-style
 `.itp` file assemble live as you work — then download everything you need to run
 a simulation.
 
+<p align="center">
+  <img src="images/gui_view_1.png" alt="CGBuilder interface — live ITP preview, 3D viewport, and builder tabs" width="100%">
+  <br>
+  <sub><b>The three-column workspace</b> — the live <code>.itp</code> preview (left) rebuilds on every change, the 3D viewport (center) is where you click atoms into beads, and the tabbed builder (right) holds beads, bonded terms, virtual sites, the elastic network, and file I/O.</sub>
+</p>
+
 ---
 
 ## Features
@@ -30,6 +36,84 @@ a simulation.
 - **CG-only view** — hide the atoms and show just the labelled beads (name + number), with virtual-site constructors highlighted red.
 - **NDX mapping import** — reload a previously exported cgbuilder `.ndx` to restore a bead mapping onto the current structure.
 - **Downloads** — CG `.itp`, `.ndx`, `.map`, CG `.gro`, and an all-atom `.gro` reference.
+
+---
+
+## A visual tour
+
+### Three ways to see your molecule
+
+The 3D viewport switches between the all-atom structure, a translucent bead
+overlay, and a clean coarse-grained view — with the bonded topology drawn on top.
+
+<table>
+<tr>
+<td width="33%" align="center">
+  <img src="images/mol_view_aa_cg_overlay.png" alt="All-atom view with atom-name labels" width="100%"><br>
+  <sub><b>Map atoms → beads.</b> The all-atom structure with atom-name labels; faint bead spheres mark the current mapping.</sub>
+</td>
+<td width="33%" align="center">
+  <img src="images/mol_view_aa_cg_overlay_nolabels.png" alt="Translucent CG bead overlay on the atoms" width="100%"><br>
+  <sub><b>Toggle CG view.</b> Translucent bead spheres sit over the atoms so you can check coverage at a glance.</sub>
+</td>
+<td width="33%" align="center">
+  <img src="images/mol_view_cg_show_constraints.png" alt="CG-only view with bond and angle overlays" width="100%"><br>
+  <sub><b>CG-only view.</b> Just the labelled beads (name + number) with bonds and an angle arc (θ) drawn between centres.</sub>
+</td>
+</tr>
+</table>
+
+### Build every term from the right-hand tabs
+
+Each tab is a self-contained builder: click beads in the 3D view or add terms by
+dropdown, then edit force constants and reference values inline.
+
+<table>
+<tr>
+<td width="25%" align="center">
+  <img src="images/Bead_tab.png" alt="Beads tab" width="100%"><br>
+  <sub><b>Beads</b><br>type, charge, live mass</sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/Bond_tab.png" alt="Bonds tab" width="100%"><br>
+  <sub><b>Bonds</b><br>auto-measured length + fc</sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/Constraint_tab.png" alt="Constraints tab" width="100%"><br>
+  <sub><b>Constraints</b><br>rigid + <code>#ifdef FLEXIBLE</code></sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/Angle_tab.png" alt="Angles tab" width="100%"><br>
+  <sub><b>Angles</b><br>θ + fc</sub>
+</td>
+</tr>
+<tr>
+<td width="25%" align="center">
+  <img src="images/Dihedral_tab.png" alt="Dihedrals tab" width="100%"><br>
+  <sub><b>Dihedrals</b><br>φ + fc + multiplicity</sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/VS_tab.png" alt="Virtual sites tab" width="100%"><br>
+  <sub><b>Virtual sites</b><br>3 constructors → site</sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/EN_tab.png" alt="Elastic network tab" width="100%"><br>
+  <sub><b>Elastic net</b><br>cutoff / strength / decay</sub>
+</td>
+<td width="25%" align="center">
+  <img src="images/file_tab.png" alt="Files tab" width="100%"><br>
+  <sub><b>Files</b><br>download · load · project</sub>
+</td>
+</tr>
+</table>
+
+### Everything downloadable in one place
+
+<p align="center">
+  <img src="images/gui_view_2.png" alt="Files tab with connectivity drawn in the CG view" width="100%">
+  <br>
+  <sub>The <b>Files</b> tab exports the CG <code>.itp</code>, <code>.ndx</code>, <code>.map</code>, CG <code>.gro</code>, and AA <code>.gro</code>, loads a <code>.map</code> or <code>.itp</code> back onto a structure, and saves/restores a full <code>.cgb2proj</code> project. Here bonds and an angle are drawn between bead centres in the CG view.</sub>
+</p>
 
 ---
 

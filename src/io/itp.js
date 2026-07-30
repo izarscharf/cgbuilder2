@@ -1,12 +1,8 @@
-import { distanceNm } from '../model/geometry.js';
 import { beadMass } from '../model/masses.js';
+import { elasticPairs } from '../model/elastic.js';
 
 // Generate a Martini-style GROMACS .itp from the bead mapping + topology.
 // meta = { name, nrexcl }.
-
-function pairKey(a, b) {
-    return a < b ? a + '-' + b : b + '-' + a;
-}
 
 function num(x, decimals) {
     return Number(x).toFixed(decimals);
@@ -37,6 +33,14 @@ export function generateITP(collection, topology, meta, masses) {
     // and given mass 0 (their mass is carried by the constructing beads).
     const vsiteTargets = new Set(topology.vsites.map((v) => v.target));
 
+    // fast_forward groups mappable interactions by a trailing "; A_B[_C[_D]]"
+    // comment of the bead names, so it can flag them automatically.
+    const nameOf = (id) => {
+        const b = collection.beadById(id);
+        return b ? (b.name || '#' + id) : '?';
+    };
+    const ffComment = (...ids) => ' ; ' + ids.map(nameOf).join('_');
+
     // ---- atoms ----
     out += '[ atoms ]\n';
     out += ';  nr  type  resnr  residue  atom  cgnr  charge     mass\n';
@@ -56,11 +60,9 @@ export function generateITP(collection, topology, meta, masses) {
         ].join(' ') + '\n';
     });
     out += '\n';
-    // Manual-bond pairs, so the elastic net does not duplicate them.
-    const bondedPairs = new Set(topology.bonds.map((b) => pairKey(b.i, b.j)));
 
     // ---- bonds (manual + elastic net + flexible-constraint fallback) ----
-    const elastic = generateElastic(beads, topology, vsiteTargets, bondedPairs);
+    const elastic = elasticPairs(collection, topology);
     const constraints = topology.constraints;
     if (topology.bonds.length > 0 || elastic.length > 0 || constraints.length > 0) {
         out += '[ bonds ]\n';
@@ -73,7 +75,7 @@ export function generateITP(collection, topology, meta, masses) {
                     String(b.func).padStart(4),
                     num(b.length, 4).padStart(9),
                     num(b.fc, 1).padStart(9),
-                ].join(' ') + '\n';
+                ].join(' ') + ffComment(b.i, b.j) + '\n';
             }
         }
         if (elastic.length > 0) {
@@ -134,7 +136,7 @@ export function generateITP(collection, topology, meta, masses) {
                 String(a.func).padStart(4),
                 num(a.angle, 2).padStart(9),
                 num(a.fc, 1).padStart(9),
-            ].join(' ') + '\n';
+            ].join(' ') + ffComment(a.i, a.j, a.k) + '\n';
         }
         out += '\n';
     }
@@ -153,7 +155,7 @@ export function generateITP(collection, topology, meta, masses) {
                 num(d.angle, 2).padStart(9),
                 num(d.fc, 1).padStart(9),
                 String(d.mult).padStart(4),
-            ].join(' ') + '\n';
+            ].join(' ') + ffComment(d.i, d.j, d.k, d.l) + '\n';
         }
         out += '\n';
     }
@@ -211,36 +213,4 @@ function generateExclusions(vsites, idx) {
     }
     out += '\n';
     return out;
-}
-
-
-// Build elastic-network bonds (GROMACS func 6) between all bead pairs whose
-// centers are within `cutoff` nm. Force constant optionally decays with
-// distance: fc = strength * exp(-dist / decay).
-function generateElastic(beads, topology, vsiteTargets, bondedPairs) {
-    const el = topology.elastic;
-    if (!el.enabled) {
-        return [];
-    }
-    const eligible = beads.filter(
-        (b) => b.atoms.length > 0 && !vsiteTargets.has(b.id));
-    const result = [];
-    for (let a = 0; a < eligible.length; a++) {
-        for (let b = a + 1; b < eligible.length; b++) {
-            const ba = eligible[a];
-            const bb = eligible[b];
-            if (bondedPairs.has(pairKey(ba.id, bb.id))) {
-                continue;
-            }
-            const d = distanceNm(ba.center, bb.center);
-            if (d > el.cutoff) {
-                continue;
-            }
-            const fc = el.decay > 0
-                ? el.strength * Math.exp(-d / el.decay)
-                : el.strength;
-            result.push({ i: ba.id, j: bb.id, length: d, fc });
-        }
-    }
-    return result;
 }

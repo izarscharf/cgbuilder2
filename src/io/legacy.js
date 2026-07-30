@@ -13,33 +13,34 @@ export function generateNDX(collection) {
 }
 
 
-export function generateMap(collection) {
-    let output = "[ to ]\nmartini\n\n[ martini ]\n";
-    let atomToBeads = {};
-    let atoms = [];
-    let atomname;
-    let index;
+export function generateMap(collection, name = 'MOL', from = 'charmm') {
+    const molName = (name || 'MOL').trim() || 'MOL';
+    const fromFF = (from || '').trim();
+    let output = "[ molecule ]\n" + molName + "\n\n";
+    output += "[ from ]\n" + fromFF + "\n\n";
+    output += "[ to ]\nmartini\n\n[ martini ]\n";
     for (const bead of collection.beads) {
         output += bead.name + " ";
-        for (const atom of bead.atoms) {
-            atomname = atom.atomname;
-            if (!atomToBeads[atomname]) {
-                atomToBeads[atomname] = [];
-                atoms.push(atom);
-            }
-            atomToBeads[atomname].push(bead.name);
-        }
     }
     output += "\n\n";
 
+    // One row per atom (by its real 0-based structure index -> 1-based serial),
+    // listing every bead it belongs to. Real serials keep the map re-loadable.
+    const byIndex = new Map();
+    for (const bead of collection.beads) {
+        for (const atom of bead.atoms) {
+            if (!byIndex.has(atom.index)) {
+                byIndex.set(atom.index, { atomname: atom.atomname, beads: [] });
+            }
+            byIndex.get(atom.index).beads.push(bead.name);
+        }
+    }
     output += "[ atoms ]\n";
-    index = 0;
-    atoms.sort(function (a, b) { return a.index - b.index });
-    for (const atom of atoms) {
-        index += 1;
-        output += index + "\t" + atom.atomname;
-        for (const bead of atomToBeads[atom.atomname]) {
-            output += "\t" + bead;
+    for (const idx of [...byIndex.keys()].sort((a, b) => a - b)) {
+        const entry = byIndex.get(idx);
+        output += (idx + 1) + "\t" + entry.atomname;
+        for (const bn of entry.beads) {
+            output += "\t" + bn;
         }
         output += "\n";
     }

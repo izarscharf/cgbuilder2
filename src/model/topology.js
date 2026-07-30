@@ -44,6 +44,16 @@ export class Topology {
         this.vsites.push({ target, i, j, k, a, b, func: 1 });
     }
 
+    isVsiteTarget(id) {
+        return this.vsites.some((v) => v.target === id);
+    }
+
+    // Names of any beads in `ids` that are virtual sites (invalid for bonded
+    // terms / constraints / EN — only their constructors may bear interactions).
+    vsiteConflicts(ids) {
+        return ids.filter((id) => this.isVsiteTarget(id));
+    }
+
     // Drop any term that references a bead id no longer present.
     pruneMissing(existingIds) {
         const has = (id) => existingIds.has(id);

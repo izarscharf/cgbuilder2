@@ -1,5 +1,6 @@
 import { el, clear, beadSelect, numberField } from './dom.js';
 import { distanceNm, angleDeg, dihedralDeg, vsite3Params } from '../model/geometry.js';
+import { guardVsite } from './notify.js';
 
 function nameOf(controller, id) {
     const b = controller.collection.beadById(id);
@@ -54,7 +55,7 @@ export function renderBondPanel(controller) {
         text: 'Add bond',
         onclick: () => {
             const i = +s1.value, j = +s2.value;
-            if (i === j) { return; }
+            if (i === j || !guardVsite(controller, [i, j])) { return; }
             topology.addBond(i, j, distanceNm(centerOf(controller, i), centerOf(controller, j)));
             controller.refresh();
         },
@@ -85,7 +86,7 @@ export function renderConstraintPanel(controller) {
         text: 'Add constraint',
         onclick: () => {
             const i = +s1.value, j = +s2.value;
-            if (i === j) { return; }
+            if (i === j || !guardVsite(controller, [i, j])) { return; }
             topology.addConstraint(i, j, distanceNm(centerOf(controller, i), centerOf(controller, j)));
             controller.refresh();
         },
@@ -117,7 +118,7 @@ export function renderAnglePanel(controller) {
         text: 'Add angle',
         onclick: () => {
             const i = +s1.value, j = +s2.value, k = +s3.value;
-            if (i === j || j === k || i === k) { return; }
+            if (i === j || j === k || i === k || !guardVsite(controller, [i, j, k])) { return; }
             const a = angleDeg(centerOf(controller, i), centerOf(controller, j), centerOf(controller, k));
             topology.addAngle(i, j, k, a);
             controller.refresh();
@@ -148,7 +149,7 @@ export function renderDihedralPanel(controller) {
         text: 'Add dihedral',
         onclick: () => {
             const [i, j, k, l] = s.map((x) => +x.value);
-            if (new Set([i, j, k, l]).size < 4) { return; }
+            if (new Set([i, j, k, l]).size < 4 || !guardVsite(controller, [i, j, k, l])) { return; }
             const a = dihedralDeg(centerOf(controller, i), centerOf(controller, j),
                 centerOf(controller, k), centerOf(controller, l));
             topology.addDihedral(i, j, k, l, a);

@@ -24,7 +24,12 @@
             </label>
             <button id="dl-itp" class="dl">Download .itp</button>
         </div>
-        <pre id="itp-output">Load a molecule to begin.</pre>
+        <div id="itp-actions">
+            <button id="itp-apply" title="Parse the ITP text and update the model">Apply to model</button>
+            <button id="itp-revert" title="Discard edits and regenerate from the model">Revert</button>
+            <span id="itp-status"></span>
+        </div>
+        <textarea id="itp-output" spellcheck="false" wrap="off">Load a molecule to begin.</textarea>
     </aside>
 
     <!-- CENTER: controls + 3D viewport -->
@@ -45,7 +50,6 @@
                 <span id="smiles-status"></span>
             </form>
             <div id="view-buttons">
-                <button class="new-bead" disabled>New bead</button>
                 <button class="toggle-aa-labels" disabled>Hide labels</button>
                 <button id="toggle-cg" disabled>Toggle CG view</button>
                 <button id="cg-only" disabled>CG only view</button>
@@ -67,12 +71,16 @@
             <button class="tab-btn" data-tab="outputs">Files</button>
         </nav>
 
+        <div id="builder-warning" class="warn" style="display:none"></div>
+
         <div class="tab-panel active" data-tab="beads">
             <p class="hint">Click atoms in the 3D view to add them to the selected bead.</p>
+            <button class="new-bead" disabled>New bead</button>
             <ul id="bead-list"></ul>
         </div>
 
         <div class="tab-panel" data-tab="bonds">
+            <label class="show-toggle"><input type="checkbox" id="show-bonds"> Show bonds in 3D</label>
             <div id="bond-interactive" class="pick-box"></div>
             <details>
                 <summary>Or add manually by dropdown</summary>
@@ -83,6 +91,7 @@
 
         <div class="tab-panel" data-tab="constraints">
             <p class="hint">Rigid constraints. Written under #ifndef FLEXIBLE, plus a matching flexible bond under #ifdef FLEXIBLE in [bonds].</p>
+            <label class="show-toggle"><input type="checkbox" id="show-constraints"> Show constraints in 3D</label>
             <div id="constraint-interactive" class="pick-box"></div>
             <details>
                 <summary>Or add manually by dropdown</summary>
@@ -92,6 +101,7 @@
         </div>
 
         <div class="tab-panel" data-tab="angles">
+            <label class="show-toggle"><input type="checkbox" id="show-angles"> Show angles in 3D (arc + θ)</label>
             <div id="angle-interactive" class="pick-box"></div>
             <details>
                 <summary>Or add manually by dropdown</summary>
@@ -101,6 +111,7 @@
         </div>
 
         <div class="tab-panel" data-tab="dihedrals">
+            <label class="show-toggle"><input type="checkbox" id="show-dihedrals"> Show dihedrals in 3D (arc + φ)</label>
             <div id="dihedral-interactive" class="pick-box"></div>
             <details>
                 <summary>Or add manually by dropdown</summary>
@@ -110,6 +121,8 @@
         </div>
 
         <div class="tab-panel" data-tab="vsites">
+            <label class="show-toggle"><input type="checkbox" id="show-vsites"> Show virtual sites in 3D (constructor → site)</label>
+            <label class="show-toggle"><input type="checkbox" id="show-vs-edges"> Show constructor edges (rigid frame)</label>
             <div id="vsite-interactive" class="pick-box"></div>
             <details>
                 <summary>Or add manually by dropdown</summary>
@@ -120,11 +133,16 @@
         </div>
 
         <div class="tab-panel" data-tab="elastic">
+            <label class="show-toggle"><input type="checkbox" id="show-elastic"> Show elastic network in 3D</label>
             <div id="elastic-controls"></div>
         </div>
 
         <div class="tab-panel" data-tab="outputs">
             <p class="hint">CG model files</p>
+            <label class="field">.map source force field (<code>[ from ]</code>)
+                <input id="map-from" type="text" value="charmm"
+                       title="Source (atomistic) force field name for the .map file; can be left blank" />
+            </label>
             <div class="dl-row">
                 <button id='dl-itp-file' class='dl'>Download .itp</button>
                 <button id='dl-ndx' class='dl'>Download CG .ndx</button>
@@ -134,6 +152,19 @@
             <p class="hint">All-atom reference</p>
             <div class="dl-row">
                 <button id='dl-aa-gro' class='dl'>Download AA .gro</button>
+            </div>
+            <p class="hint">Load / restore (onto a loaded structure)</p>
+            <div class="dl-row">
+                <label for="map-select" class="btn">Load .map</label>
+                <input id="map-select" type="file" accept=".map" disabled />
+                <label for="itp-select" class="btn">Load .itp</label>
+                <input id="itp-select" type="file" accept=".itp" disabled />
+            </div>
+            <p class="hint">Project (structure + ndx + map + itp)</p>
+            <div class="dl-row">
+                <button id='dl-proj' class='dl'>Save .cgb2proj</button>
+                <label for="proj-select" class="btn">Load .cgb2proj</label>
+                <input id="proj-select" type="file" accept=".cgb2proj" />
             </div>
             <details>
                 <summary>Preview NDX / MAP / CG GRO</summary>

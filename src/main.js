@@ -9,11 +9,16 @@ import {
 import { renderElasticPanel } from './ui/elasticPanel.js';
 import { updateItpPanel } from './ui/itpPanel.js';
 import { generateITP } from './io/itp.js';
+import { guardVsite } from './ui/notify.js';
 import { computeBeadMasses } from './model/masses.js';
 import { vsite3Params, distanceNm, angleDeg, dihedralDeg } from './model/geometry.js';
 import { generateNDX, generateMap, generateGRO, generateAAGro, download } from './io/legacy.js';
 import { smilesToMolfile, molfileBlob } from './io/loaders.js';
 import { applyNdx } from './io/ndxImport.js';
+import { applyMap } from './io/mapImport.js';
+import { parseItp, applyItp } from './io/itpParse.js';
+import { buildProject, parseProject } from './io/project.js';
+import { showWarning } from './ui/notify.js';
 
 // The single active model/view, rebuilt each time a molecule is loaded.
 let controller = null;
@@ -36,6 +41,7 @@ function makeController(component, stage) {
         viz,
         structure: component.structure, // used for index lookup + bond-graph mass spread
         masses: new Map(),              // bead.id -> total mass (incl. spread of unassigned atoms)
+        itpDirty: false,                // true while the user is editing the ITP text
         // Interactive click-to-pick state, shared by all builders (driven by
         // clicks on bead spheres in the CG view).
         //   mode: 'idle' | 'vs-constructors' | 'vs-targets' | 'term'
@@ -88,6 +94,10 @@ function makeController(component, stage) {
                 this.topology.addVsite(id, i, j, k, a, b);
                 this.refresh();
             } else if (p.mode === 'term') {
+                if (this.topology.isVsiteTarget(id)) {
+                    guardVsite(this, [id]);   // warn: vsites can't carry bonded terms
+                    return;
+                }
                 const at = p.selected.indexOf(id);
                 if (at >= 0) { p.selected.splice(at, 1); }        // click again to deselect
                 else { p.selected.push(id); }
@@ -104,6 +114,7 @@ function makeController(component, stage) {
             name: document.getElementById('mol-name').value || 'MOL',
             resname: document.getElementById('mol-resname').value,
             nrexcl: parseInt(document.getElementById('mol-nrexcl').value, 10) || 1,
+            mapFrom: document.getElementById('map-from').value,
         },
         // Value edits: refresh outputs + 3D without rebuilding panels (keeps focus).
         syncOutputs() {
@@ -159,25 +170,51 @@ function addTerm(topology, termType, ids, center) {
     }
 }
 
+// Push controller.meta back into the header input fields (after Apply / load).
+function syncMetaInputs(ctrl) {
+    document.getElementById('mol-name').value = ctrl.meta.name || '';
+    document.getElementById('mol-resname').value = ctrl.meta.resname || '';
+    document.getElementById('mol-nrexcl').value = String(ctrl.meta.nrexcl);
+    document.getElementById('map-from').value = ctrl.meta.mapFrom || '';
+}
+
 function updateLegacyOutputs(ctrl) {
     document.getElementById('ndx-output').textContent = generateNDX(ctrl.collection);
-    document.getElementById('map-output').textContent = generateMap(ctrl.collection);
+    document.getElementById('map-output').textContent = generateMap(ctrl.collection, ctrl.meta.name, ctrl.meta.mapFrom);
     document.getElementById('gro-output').textContent = generateGRO(ctrl.collection, ctrl.meta.resname);
 }
 
-function loadInput(input, stage, params) {
+function loadInput(input, stage, params, after) {
     stage.removeAllComponents();
     stage.signals.clicked.removeAll();
     return stage.loadFile(input, params).then((component) => {
         component.autoView();
         controller = makeController(component, stage);
         enableControls();
+        if (after) { after(controller); }
         controller.refresh();
     });
 }
 
+// Restore a full session from a .cgb2proj bundle: load the structure, rebuild
+// beads from the embedded map, then apply the embedded itp (types + topology).
+function loadProject(text, stage) {
+    const proj = parseProject(text);
+    const blob = new Blob([proj.structure], { type: 'text/plain' });
+    return loadInput(blob, stage, { ext: proj.structureExt || 'gro', name: proj.meta.name || 'project' }, (ctrl) => {
+        if (proj.map) { applyMap(proj.map, ctrl.collection, ctrl.structure); }
+        if (proj.itp) { applyItp(parseItp(proj.itp), ctrl.collection, ctrl.topology, ctrl.meta); }
+        if (proj.meta.name != null) { ctrl.meta.name = proj.meta.name; }
+        if (proj.meta.resname != null) { ctrl.meta.resname = proj.meta.resname; }
+        if (Number.isFinite(proj.meta.nrexcl)) { ctrl.meta.nrexcl = proj.meta.nrexcl; }
+        if (proj.meta.mapFrom != null) { ctrl.meta.mapFrom = proj.meta.mapFrom; }
+        ctrl.topology.pruneMissing(new Set(ctrl.collection.beads.map((b) => b.id)));
+        syncMetaInputs(ctrl);
+    }).catch((err) => showWarning('Project load failed: ' + err.message));
+}
+
 function enableControls() {
-    for (const b of document.querySelectorAll('.new-bead, .toggle-aa-labels, #toggle-cg, #cg-only, #ndx-select')) {
+    for (const b of document.querySelectorAll('.new-bead, .toggle-aa-labels, #toggle-cg, #cg-only, #ndx-select, #map-select, #itp-select')) {
         b.disabled = false;
     }
 }
@@ -209,17 +246,59 @@ function setupStaticControls(stage) {
         }
     });
 
+    // Read a chosen file as text and hand it to `handler`.
+    const onFileText = (id, handler) => {
+        document.getElementById(id).addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) { return; }
+            const reader = new FileReader();
+            reader.onload = () => handler(reader.result);
+            reader.readAsText(file);
+            e.target.value = ''; // allow re-uploading the same file
+        });
+    };
+
     // NDX mapping import (requires a loaded structure to resolve atom indices).
-    document.getElementById('ndx-select').addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file || !controller) { return; }
-        const reader = new FileReader();
-        reader.onload = () => {
-            applyNdx(reader.result, controller.collection, controller.topology, controller.structure);
-            controller.refresh();
-        };
-        reader.readAsText(file);
-        e.target.value = ''; // allow re-uploading the same file
+    onFileText('ndx-select', (text) => {
+        if (!controller) { return; }
+        applyNdx(text, controller.collection, controller.topology, controller.structure);
+        controller.refresh();
+    });
+
+    // MAP import: rebuild beads from the mapping (layered on a loaded structure).
+    onFileText('map-select', (text) => {
+        if (!controller) { return; }
+        const res = applyMap(text, controller.collection, controller.structure);
+        controller.topology.pruneMissing(new Set(controller.collection.beads.map((b) => b.id)));
+        if (res.molecule) { controller.meta.name = res.molecule; }
+        if (res.from) { controller.meta.mapFrom = res.from; }
+        syncMetaInputs(controller);
+        controller.refresh();
+        if (res.warnings.length) { showWarning(res.warnings.join(' ')); }
+    });
+
+    // ITP import: set bead types/charges + rebuild topology from the itp.
+    onFileText('itp-select', (text) => {
+        if (!controller) { return; }
+        const res = applyItp(parseItp(text), controller.collection, controller.topology, controller.meta);
+        controller.itpDirty = false;
+        syncMetaInputs(controller);
+        controller.refresh();
+        if (res.warnings.length) { showWarning(res.warnings.join(' ')); }
+    });
+
+    // Project bundle: load restores everything; save stitches it together.
+    onFileText('proj-select', (text) => loadProject(text, stage));
+    document.getElementById('dl-proj').addEventListener('click', () => {
+        if (!controller) { return; }
+        const name = (controller.meta.name || 'model').trim() || 'model';
+        const bundle = buildProject(
+            controller.meta,
+            generateAAGro(controller.structure),
+            generateNDX(controller.collection),
+            generateMap(controller.collection, controller.meta.name, controller.meta.mapFrom),
+            generateITP(controller.collection, controller.topology, controller.meta, controller.masses));
+        download(name + '.cgb2proj', bundle);
     });
 
     // SMILES input.
@@ -268,11 +347,29 @@ function setupStaticControls(stage) {
         e.target.textContent = on ? 'Show atoms' : 'CG only view';
     });
 
+    // Per-type connectivity visibility toggles (one 'show' box per builder tab).
+    for (const [id, type] of [
+        ['show-bonds', 'bonds'], ['show-constraints', 'constraints'],
+        ['show-angles', 'angles'], ['show-dihedrals', 'dihedrals'],
+        ['show-elastic', 'elastic'],
+        ['show-vsites', 'vsites'], ['show-vs-edges', 'vsEdges'],
+    ]) {
+        document.getElementById(id).addEventListener('change', (e) => {
+            if (controller) { controller.viz.setShow(type, e.target.checked); }
+        });
+    }
+
     // moleculetype meta inputs.
     document.getElementById('mol-name').addEventListener('input', (e) => {
         if (!controller) { return; }
         controller.meta.name = e.target.value;
         updateItpPanel(controller);
+        updateLegacyOutputs(controller); // .map [ molecule ] uses this name
+    });
+    document.getElementById('map-from').addEventListener('input', (e) => {
+        if (!controller) { return; }
+        controller.meta.mapFrom = e.target.value;
+        updateLegacyOutputs(controller);
     });
     document.getElementById('mol-resname').addEventListener('input', (e) => {
         if (!controller) { return; }
@@ -287,6 +384,44 @@ function setupStaticControls(stage) {
         updateItpPanel(controller);
     });
 
+    // Editable ITP: mark dirty on edit; Apply parses it back into the model.
+    const itpStatus = (msg, bad) => {
+        const el = document.getElementById('itp-status');
+        el.textContent = msg;
+        el.style.color = bad ? '#c0392b' : '#2a2';
+    };
+    document.getElementById('itp-output').addEventListener('input', () => {
+        if (!controller) { return; }
+        controller.itpDirty = true;
+        itpStatus('edited — click Apply to update the model', false);
+    });
+    document.getElementById('itp-revert').addEventListener('click', () => {
+        if (!controller) { return; }
+        controller.itpDirty = false;
+        updateItpPanel(controller);
+        itpStatus('', false);
+    });
+    document.getElementById('itp-apply').addEventListener('click', () => {
+        if (!controller) { return; }
+        let parsed;
+        try {
+            parsed = parseItp(document.getElementById('itp-output').value);
+        } catch (err) {
+            itpStatus('Parse error: ' + err.message, true);
+            return;
+        }
+        const res = applyItp(parsed, controller.collection, controller.topology, controller.meta);
+        controller.itpDirty = false;
+        syncMetaInputs(controller);
+        controller.refresh();
+        if (res.warnings.length) {
+            itpStatus('Applied with warnings', true);
+            showWarning(res.warnings.join(' '));
+        } else {
+            itpStatus('Applied ✓', false);
+        }
+    });
+
     // Download buttons.
     const dl = (id, fn, ext) => document.getElementById(id).addEventListener('click', () => {
         if (controller) { download('cgbuilder' + ext, fn(controller)); }
@@ -297,7 +432,7 @@ function setupStaticControls(stage) {
         download(name + '.itp', generateITP(controller.collection, controller.topology, controller.meta, controller.masses));
     });
     dl('dl-ndx', (c) => generateNDX(c.collection), '.ndx');
-    dl('dl-map', (c) => generateMap(c.collection), '.map');
+    dl('dl-map', (c) => generateMap(c.collection, c.meta.name, c.meta.mapFrom), '.map');
     dl('dl-gro', (c) => generateGRO(c.collection, c.meta.resname), '.gro');
     dl('dl-aa-gro', (c) => generateAAGro(c.structure), '_aa.gro');
     document.getElementById('dl-itp-file').addEventListener('click', () => {

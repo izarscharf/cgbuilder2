@@ -31,12 +31,24 @@ html, body {
 #itp-meta label { display: flex; align-items: center; gap: 0.3em; }
 #itp-meta input[type=text] { width: 6em; }
 #itp-meta input[type=number] { width: 4em; }
+#itp-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4em;
+    padding: 0.3em 0.5em;
+    border-bottom: 1px solid #eee;
+}
+#itp-status { font-size: 0.8em; }
 #itp-output {
     flex: 1;
     margin: 0;
     padding: 0.75em;
     overflow: auto;
     white-space: pre;
+    border: 0;
+    resize: none;
+    outline: none;
+    width: 100%;
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: 12px;
     background: #1e1e1e;
@@ -99,6 +111,16 @@ html, body {
 .tab-panel.active { display: block; }
 
 .hint { color: #666; font-size: 0.85em; margin: 0.3em 0; }
+.show-toggle { display: flex; align-items: center; gap: 0.3em; font-size: 0.9em; margin: 0.2em 0 0.4em; }
+.warn {
+    margin: 0.4em;
+    padding: 0.4em 0.6em;
+    background: #fff3cd;
+    border: 1px solid #ffe08a;
+    border-radius: 4px;
+    color: #7a5c00;
+    font-size: 0.85em;
+}
 
 /* buttons */
 .btn, button {
