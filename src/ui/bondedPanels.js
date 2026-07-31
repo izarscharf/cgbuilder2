@@ -1,6 +1,6 @@
 import { el, clear, beadSelect, numberField } from './dom.js';
-import { distanceNm, angleDeg, dihedralDeg, vsite3Params } from '../model/geometry.js';
-import { guardVsite } from './notify.js';
+import { distanceNm, angleDeg, dihedralDeg, chooseVsite3 } from '../model/geometry.js';
+import { guardVsite, showWarning } from './notify.js';
 
 function nameOf(controller, id) {
     const b = controller.collection.beadById(id);
@@ -238,9 +238,10 @@ export function renderVsitePanel(controller) {
         onclick: () => {
             const t = +target.value, i = +c1.value, j = +c2.value, k = +c3.value;
             if (new Set([t, i, j, k]).size < 4) { return; }
-            const { a, b } = vsite3Params(centerOf(controller, t),
+            const r = chooseVsite3(centerOf(controller, t),
                 centerOf(controller, i), centerOf(controller, j), centerOf(controller, k));
-            topology.addVsite(t, i, j, k, a, b);
+            if (r.error) { showWarning(r.error); return; }
+            topology.addVsite(t, i, j, k, r.a, r.b, r.func, r.c);
             controller.refresh();
         },
     });
@@ -250,11 +251,14 @@ export function renderVsitePanel(controller) {
     const list = document.getElementById('vsite-list');
     clear(list);
     topology.vsites.forEach((v, idx) => {
-        list.appendChild(el('li', { class: 'term-row' }, [
+        const row = [
             el('span', { class: 'term-label', text: `${nameOf(controller, v.target)} = f(${nameOf(controller, v.i)},${nameOf(controller, v.j)},${nameOf(controller, v.k)})` }),
+            el('span', { class: 'term-func', text: v.func === 4 ? '3out' : 'in-plane' }),
             numberField('a', v, 'a', 0.01, controller.syncOutputs),
             numberField('b', v, 'b', 0.01, controller.syncOutputs),
-            el('button', { class: 'remove', text: 'X', onclick: () => removeRow(controller, topology.vsites, idx) }),
-        ]));
+        ];
+        if (v.func === 4) { row.push(numberField('c', v, 'c', 0.01, controller.syncOutputs)); }
+        row.push(el('button', { class: 'remove', text: 'X', onclick: () => removeRow(controller, topology.vsites, idx) }));
+        list.appendChild(el('li', { class: 'term-row' }, row));
     });
 }

@@ -64,9 +64,11 @@ export function parseItp(text) {
                     mult: t.length > 7 ? int(t[7]) : 1,
                 });
                 break;
-            case 'virtual_sites3':
-                res.vsites.push({ target: int(t[0]), i: int(t[1]), j: int(t[2]), k: int(t[3]), func: int(t[4]) || 1, a: flt(t[5]), b: flt(t[6]) });
+            case 'virtual_sites3': {
+                const func = int(t[4]) || 1;
+                res.vsites.push({ target: int(t[0]), i: int(t[1]), j: int(t[2]), k: int(t[3]), func, a: flt(t[5]), b: flt(t[6]), c: func === 4 ? flt(t[7]) : 0 });
                 break;
+            }
             default:
                 break; // exclusions etc. are derived, not parsed back
         }
@@ -141,7 +143,7 @@ export function applyItp(parsed, collection, topology, meta) {
     }
     for (const v of parsed.vsites) {
         const m = mapTerm(v, ['target', 'i', 'j', 'k']);
-        if (m) { topology.vsites.push({ target: m.target, i: m.i, j: m.j, k: m.k, a: v.a, b: v.b, func: v.func }); } else { dropped++; }
+        if (m) { topology.vsites.push({ target: m.target, i: m.i, j: m.j, k: m.k, a: v.a, b: v.b, c: v.c || 0, func: v.func }); } else { dropped++; }
     }
 
     topology.elastic.enabled = false; // bonds are explicit after an ITP load

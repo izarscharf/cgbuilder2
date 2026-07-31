@@ -15,7 +15,7 @@ export class Topology {
         this.constraints = []; // {i, j, length, fc, func:1} (fc used for the FLEXIBLE bond)
         this.angles = [];      // {i, j, k, angle, fc, func:2}
         this.dihedrals = [];   // {i, j, k, l, angle, fc, mult, func:1}
-        this.vsites = [];      // {target, i, j, k, a, b, func:1}
+        this.vsites = [];      // {target, i, j, k, a, b, c, func} — func 1 (in-plane) or 4 (3out)
         this.elastic = { ...DEFAULTS.elastic };
     }
 
@@ -40,8 +40,8 @@ export class Topology {
         });
     }
 
-    addVsite(target, i, j, k, a, b) {
-        this.vsites.push({ target, i, j, k, a, b, func: 1 });
+    addVsite(target, i, j, k, a, b, func = 1, c = 0) {
+        this.vsites.push({ target, i, j, k, a, b, c, func });
     }
 
     isVsiteTarget(id) {

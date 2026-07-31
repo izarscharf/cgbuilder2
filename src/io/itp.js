@@ -163,9 +163,9 @@ export function generateITP(collection, topology, meta, masses) {
     // ---- virtual sites ----
     if (topology.vsites.length > 0) {
         out += '[ virtual_sites3 ]\n';
-        out += '; site    i    j    k func        a        b\n';
+        out += '; site    i    j    k func        a        b        c\n';
         for (const v of topology.vsites) {
-            out += [
+            const cols = [
                 String(idx(v.target)).padStart(6),
                 String(idx(v.i)).padStart(4),
                 String(idx(v.j)).padStart(4),
@@ -173,7 +173,11 @@ export function generateITP(collection, topology, meta, masses) {
                 String(v.func).padStart(4),
                 num(v.a, 4).padStart(9),
                 num(v.b, 4).padStart(9),
-            ].join(' ') + '\n';
+            ];
+            // funct 4 (3out) carries an extra out-of-plane coefficient c (nm^-1);
+            // funct 1 (in-plane) has only a, b.
+            if (v.func === 4) { cols.push(num(v.c, 4).padStart(9)); }
+            out += cols.join(' ') + '\n';
         }
         out += '\n';
 

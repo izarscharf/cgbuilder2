@@ -194,6 +194,7 @@ label.btn {
     border-bottom: 1px solid #f0f0f0;
 }
 .term-label { font-weight: 600; min-width: 5em; }
+.term-func { font-size: 0.75em; color: #555; background: #eef1f4; border-radius: 3px; padding: 0.05em 0.4em; }
 
 #elastic-controls { display: flex; flex-direction: column; gap: 0.5em; align-items: flex-start; }
 

@@ -11,7 +11,7 @@ import { updateItpPanel } from './ui/itpPanel.js';
 import { generateITP } from './io/itp.js';
 import { guardVsite } from './ui/notify.js';
 import { computeBeadMasses } from './model/masses.js';
-import { vsite3Params, distanceNm, angleDeg, dihedralDeg } from './model/geometry.js';
+import { chooseVsite3, distanceNm, angleDeg, dihedralDeg } from './model/geometry.js';
 import { generateNDX, generateMap, generateGRO, generateAAGro, download } from './io/legacy.js';
 import { smilesToMolfile, molfileBlob } from './io/loaders.js';
 import { applyNdx } from './io/ndxImport.js';
@@ -90,8 +90,9 @@ function makeController(component, stage) {
                 if (p.constructors.includes(id)) { return; }        // can't virtualize a constructor
                 if (this.topology.vsites.some((v) => v.target === id)) { return; } // already a vsite
                 const [i, j, k] = p.constructors;
-                const { a, b } = vsite3Params(center(id), center(i), center(j), center(k));
-                this.topology.addVsite(id, i, j, k, a, b);
+                const r = chooseVsite3(center(id), center(i), center(j), center(k));
+                if (r.error) { showWarning(r.error); return; }
+                this.topology.addVsite(id, i, j, k, r.a, r.b, r.func, r.c);
                 this.refresh();
             } else if (p.mode === 'term') {
                 if (this.topology.isVsiteTarget(id)) {
