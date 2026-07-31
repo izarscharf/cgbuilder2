@@ -288,20 +288,6 @@ A machine-readable [`CITATION.cff`](CITATION.cff) is included, so GitHub shows a
 **"Cite this repository"** button and tools like Zenodo can read the metadata
 directly.
 
-### Other standard ways to cite unpublished software
-
-- **Archive a release to get a DOI (recommended).** Connect the GitHub repo to
-  **[Zenodo](https://zenodo.org)** (or [Figshare](https://figshare.com)) and make
-  a release; it mints a permanent, versioned **DOI** you can cite like any paper.
-  This is the de-facto standard for citing research software and is the most
-  robust option for a thesis.
-- **`CITATION.cff` in the repo** — the GitHub-native format (already added here);
-  it renders a "Cite this repository" button and exports BibTeX/APA on demand.
-- **Cite the URL + version + access date** — the lightweight fallback when there
-  is no DOI: *author, year, title, version, URL, accessed YYYY-MM-DD*.
-- **[Software Heritage](https://www.softwareheritage.org)** — provides permanent
-  `swh:` identifiers that pin an exact snapshot of the source, complementing a DOI.
-
 ## Attribution
 
 CGBuilder2 is a modernized, extended rewrite of
